@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Meridian: route-aware travel advisory with a waitlist sign-up.">
+<title>Meridian Travel Advisory</title>
+<style>[hidden]{display:none!important}img{max-width:100%}body{margin:0}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#F4F6F3; --surface:#FFFFFF; --sunk:#E9EDE8; --ink:#14201B; --muted:#5A6862; --line:#D9DFDA;
+  --accent:#2C5B4D; --accent-ink:#FFFFFF; --accent-soft:#DCE8E2;
+  --l1:#3B7D5C; --l2:#C99A2E; --l3:#D06A2B; --l4:#B23A3A;
+  --shadow:0 1px 2px rgba(20,32,27,.06),0 12px 32px -12px rgba(20,32,27,.18);
+  --display:"Familjen Grotesk","Helvetica Neue",Arial,sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,-apple-system,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  color-scheme:dark;--bg:#0F1513;--surface:#172019;--sunk:#1C2622;--ink:#E8EEEA;--muted:#9AA8A1;--line:#2A3530;
+  --accent:#7FC4AC;--accent-ink:#0F1513;--accent-soft:#1F3A31;
+  --l1:#6BC292;--l2:#E2BA56;--l3:#EE8A4C;--l4:#E86A6A;--shadow:0 1px 2px rgba(0,0,0,.3),0 12px 32px -12px rgba(0,0,0,.6);
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark;--bg:#0F1513;--surface:#172019;--sunk:#1C2622;--ink:#E8EEEA;--muted:#9AA8A1;--line:#2A3530;
+  --accent:#7FC4AC;--accent-ink:#0F1513;--accent-soft:#1F3A31;
+  --l1:#6BC292;--l2:#E2BA56;--l3:#EE8A4C;--l4:#E86A6A;--shadow:0 1px 2px rgba(0,0,0,.3),0 12px 32px -12px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;padding-inline:20px}
+.wrap{max-width:1120px;margin-inline:auto}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;letter-spacing:-.02em}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+.mono{font-family:var(--mono);font-size:12px;letter-spacing:.04em}
+
+/* nav */
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);margin-inline:-20px;padding-inline:20px;border-bottom:1px solid var(--line)}
+nav{display:flex;align-items:center;gap:28px;height:64px}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:700;font-size:19px;text-decoration:none}
+.links{display:flex;gap:22px;margin-left:auto}
+.links a{text-decoration:none;color:var(--muted);font-size:15px}
+.links a:hover,.links a[aria-current]{color:var(--ink)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:42px;padding-inline:18px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:600 15px/1 var(--body);cursor:pointer;text-decoration:none}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn:hover{filter:brightness(1.06)}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center;padding-block:72px 56px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--muted);text-transform:uppercase}
+.pulse{width:8px;height:8px;border-radius:50%;background:var(--l1);box-shadow:0 0 0 0 var(--l1);animation:pulse 2.4s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--l1) 60%,transparent)}70%{box-shadow:0 0 0 10px transparent}100%{box-shadow:0 0 0 0 transparent}}
+.hero h1{font-size:clamp(40px,6vw,68px);line-height:1.02;margin-top:18px;font-weight:600}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.lede{font-size:19px;color:var(--muted);max-width:34em;margin:22px 0 30px}
+.join{display:flex;gap:8px;max-width:460px;padding:6px;background:var(--surface);border:1px solid var(--line);border-radius:999px;box-shadow:var(--shadow)}
+.join input{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font:16px var(--body);padding-inline:14px}
+.join input:focus{outline:none}
+.join-wrap{min-height:56px}
+.join-btn{height:56px;padding-inline:28px;font-size:16px;box-shadow:var(--shadow);animation:pop .28s ease-out}
+.join-btn span{transition:transform .2s}
+.join-btn:hover span{transform:translateX(3px)}
+.join:not([hidden]){animation:grow .32s cubic-bezier(.2,.8,.2,1)}
+.join .btn{height:44px;flex:none}
+.join-x{flex:none;width:44px;height:44px;border-radius:50%;border:0;background:transparent;color:var(--muted);font-size:20px;cursor:pointer}
+.join-x:hover{background:var(--sunk);color:var(--ink)}
+.join.bad{border-color:var(--l4)}
+.join-err{font-size:13px;color:var(--l4);font-weight:700;margin-top:8px;min-height:0}
+.join-err:empty{display:none}
+@keyframes grow{from{max-width:220px;opacity:.6}to{max-width:460px;opacity:1}}
+@keyframes pop{from{transform:scale(.96);opacity:.6}}
+.invite{margin-top:14px;font-size:14px;color:var(--muted)}
+.invite button{background:none;border:0;padding:0;color:var(--accent);font:700 14px var(--body);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.invite-row{display:flex;gap:8px;margin-top:10px;max-width:320px}
+.invite-row input{flex:1;min-width:0;height:40px;border:1px dashed var(--line);border-radius:10px;background:var(--surface);color:var(--ink);font:500 14px var(--mono);padding-inline:12px;text-transform:uppercase;letter-spacing:.12em}
+.msg{margin-top:12px;font-size:14px;color:var(--l1);font-weight:700;min-height:1.4em}
+.proof{display:flex;align-items:center;gap:14px;margin-top:34px}
+.avatars{display:flex}
+.avatars span{width:36px;height:36px;border-radius:50%;border:2px solid var(--bg);margin-left:-10px;display:grid;place-items:center;font:700 13px var(--display);color:#fff}
+.avatars span:first-child{margin-left:0}
+.proof p{margin:0;font-size:14px;color:var(--muted);line-height:1.35}
+.proof b{color:var(--ink)}
+.stars{color:var(--l2);letter-spacing:2px}
+
+/* phone mock */
+.stage{position:relative;display:flex;justify-content:center}
+.stage::before{content:"";position:absolute;inset:6% -2% 4%;border-radius:40px;background:
+  repeating-radial-gradient(circle at 70% 40%,transparent 0 22px,color-mix(in srgb,var(--accent) 14%,transparent) 22px 23px);opacity:.9}
+.phone{position:relative;width:310px;max-width:100%;background:var(--surface);border:1px solid var(--line);border-radius:36px;padding:18px 16px 20px;box-shadow:var(--shadow)}
+.phone .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.phone h3{font-size:20px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border-radius:999px;font:500 11px var(--mono);letter-spacing:.03em;background:var(--sunk);color:var(--muted)}
+.lvl{font-weight:700;color:#fff}
+.lvl.l1{background:var(--l1)}.lvl.l2{background:var(--l2)}.lvl.l3{background:var(--l3)}.lvl.l4{background:var(--l4)}
+:root[data-theme="dark"] .lvl{color:var(--bg)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .lvl{color:var(--bg)}}
+.trip{display:grid;gap:10px}
+.leg{border:1px solid var(--line);border-radius:16px;padding:12px;display:grid;gap:6px}
+.leg .row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.leg strong{font-family:var(--display);font-size:16px}
+.leg p{margin:0;font-size:13px;color:var(--muted);line-height:1.4}
+.meter{height:6px;border-radius:6px;background:var(--sunk);overflow:hidden}
+.meter i{display:block;height:100%;border-radius:6px}
+.float{position:absolute;right:-6px;bottom:30px;width:200px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px;box-shadow:var(--shadow);font-size:13px;line-height:1.4;animation:bob 6s ease-in-out infinite}
+.float b{display:block;font-family:var(--display);font-size:14px;margin-bottom:2px}
+@keyframes bob{50%{transform:translateY(-8px)}}
+
+/* levels strip */
+.levels{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-radius:20px;overflow:hidden;background:var(--surface)}
+.levels div{padding:20px;border-left:1px solid var(--line);display:grid;gap:6px}
+.levels div:first-child{border-left:0}
+.levels .bar{height:4px;width:36px;border-radius:4px}
+.levels strong{font-family:var(--display);font-size:17px}
+.levels p{margin:0;font-size:14px;color:var(--muted);line-height:1.45}
+
+/* features */
+section{padding-block:88px 0}
+.sec-head{display:flex;justify-content:space-between;align-items:end;gap:24px;margin-bottom:36px;flex-wrap:wrap}
+.sec-head h2{font-size:clamp(30px,4vw,44px);line-height:1.08;max-width:16em;font-weight:600}
+.sec-head p{margin:0;color:var(--muted);max-width:30em}
+.feature{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:28px;padding:44px;margin-bottom:24px}
+.feature.flip .copy{order:2}
+.feature h3{font-size:30px;line-height:1.1;font-weight:600;margin:12px 0 14px}
+.feature .copy p{color:var(--muted);margin:0 0 18px}
+.ticks{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.ticks li{display:flex;gap:10px;align-items:baseline}
+.ticks li::before{content:"";flex:none;width:7px;height:7px;border-radius:50%;background:var(--accent);transform:translateY(-1px)}
+.screen{background:var(--sunk);border-radius:20px;padding:22px;display:grid;gap:12px}
+.feed-item{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start}
+.feed-item .dot{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font:700 12px var(--mono);color:#fff}
+.feed-item b{font-family:var(--display);font-size:15px}
+.feed-item p{margin:2px 0 0;font-size:13px;color:var(--muted);line-height:1.45}
+.feed-item .when{display:block;margin-top:6px;color:var(--muted)}
+.brief{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
+.brief h4{margin:6px 0 8px;font:600 20px/1.2 var(--display)}
+.brief p{margin:0;font-size:14px;color:var(--muted)}
+.brief mark{background:var(--accent-soft);color:var(--ink);padding:0 3px;border-radius:3px}
+.insight{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.insight div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px}
+.insight .v{font:600 22px var(--display);font-variant-numeric:tabular-nums}
+.insight .k{font-size:12px;color:var(--muted)}
+
+/* field notes */
+.notes{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.note{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:20px;overflow:hidden;text-decoration:none;transition:transform .25s,box-shadow .25s}
+.note:hover{transform:translateY(-4px);box-shadow:var(--shadow)}
+.thumb{aspect-ratio:16/10;max-width:100%;position:relative;display:flex;align-items:end;padding:14px;color:#fff}
+.thumb .mono{background:rgba(0,0,0,.35);padding:4px 8px;border-radius:6px;backdrop-filter:blur(4px)}
+.note .body{padding:18px 20px 22px;display:grid;gap:8px;flex:1;align-content:start}
+.note .meta{display:flex;gap:8px;align-items:center;color:var(--muted)}
+.note h3{font-size:20px;line-height:1.2;font-weight:600}
+.note p{margin:0;font-size:15px;color:var(--muted)}
+.note .date{margin-top:auto;padding-top:8px;color:var(--muted)}
+
+/* cta + footer */
+.cta{margin-top:88px;border-radius:28px;background:var(--accent);color:var(--accent-ink);padding:56px 44px;display:flex;justify-content:space-between;align-items:center;gap:28px;flex-wrap:wrap}
+.cta h2{font-size:clamp(28px,4vw,40px);max-width:14em;font-weight:600}
+.cta .btn{background:var(--accent-ink);color:var(--accent);border-color:var(--accent-ink)}
+footer{padding-block:56px 40px;display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:32px;color:var(--muted);font-size:14px}
+footer h4{margin:0 0 12px;color:var(--ink);font:600 14px var(--display)}
+footer ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+footer a{text-decoration:none}
+footer a:hover{color:var(--ink)}
+.copy-row{border-top:1px solid var(--line);padding-block:20px 32px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:13px}
+
+@media (max-width:900px){
+  .hero,.feature{grid-template-columns:1fr}
+  .feature.flip .copy{order:0}
+  .notes{grid-template-columns:1fr 1fr}
+  .levels{grid-template-columns:1fr 1fr}
+  .levels div:nth-child(3){border-left:0}
+  .levels div:nth-child(n+3){border-top:1px solid var(--line)}
+  footer{grid-template-columns:1fr 1fr}
+}
+@media (max-width:600px){
+  body{padding-inline:16px}
+  header{margin-inline:-16px;padding-inline:16px}
+  .links{display:none}
+  nav .btn{margin-left:auto}
+  .hero{padding-block:40px 32px;gap:40px}
+  .join{flex-wrap:wrap;border-radius:20px}
+  .join input{height:44px;flex-basis:100%}
+  .join .btn{flex:1}
+  .feature{padding:24px}
+  .notes,.levels{grid-template-columns:1fr}
+  .levels div{border-left:0!important;border-top:1px solid var(--line)}
+  .levels div:first-child{border-top:0}
+  .insight{grid-template-columns:1fr 1fr 1fr}
+  .float{display:none}
+  .cta{padding:36px 24px}
+}
+
+/* sign-up modal */
+.overlay{position:fixed;inset:0;z-index:50;background:color-mix(in srgb,var(--ink) 45%,transparent);backdrop-filter:blur(4px);display:grid;place-items:center;padding:16px;padding-top:calc(16px + env(safe-area-inset-top,0px));padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));animation:fade .2s}
+@keyframes fade{from{opacity:0}}
+.modal{width:min(520px,100%);max-height:100%;overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);padding:28px}
+.m-top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
+.steps{display:flex;gap:6px}
+.steps i{width:28px;height:4px;border-radius:4px;background:var(--sunk)}
+.steps i.on{background:var(--accent)}
+.x{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:18px;cursor:pointer}
+.modal h2{font-size:26px;line-height:1.15;font-weight:600}
+.modal .sub{color:var(--muted);margin:8px 0 22px;font-size:15px}
+.fields{display:grid;gap:14px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.f{display:grid;gap:6px}
+.f label,.f .lab{font-size:13px;font-weight:700}
+.f input,.f select{height:46px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);font:16px var(--body);padding-inline:14px;width:100%}
+.f input:focus,.f select:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent}
+.f .hint{font-size:12px;color:var(--muted)}
+.f.bad input,.f.bad select{border-color:var(--l4)}
+.f .err{font-size:12px;color:var(--l4);font-weight:700}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{height:36px;padding-inline:14px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:14px var(--body);cursor:pointer}
+.chips button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.toggle{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;font-size:14px}
+.toggle input{width:20px;height:20px;accent-color:var(--accent)}
+.m-actions{display:flex;justify-content:space-between;gap:10px;margin-top:24px}
+.m-actions .btn.primary{margin-left:auto}
+.badge{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;font:500 12px var(--mono);letter-spacing:.04em}
+.badge.wait{background:color-mix(in srgb,var(--l2) 18%,transparent);color:var(--ink)}
+.badge.live{background:color-mix(in srgb,var(--l1) 20%,transparent);color:var(--ink)}
+.summary{display:grid;gap:0;border:1px solid var(--line);border-radius:14px;margin-top:18px}
+.summary div{display:flex;justify-content:space-between;gap:16px;padding:11px 14px;border-top:1px solid var(--line);font-size:14px}
+.summary div:first-child{border-top:0}
+.summary dt{color:var(--muted)}
+.summary dd{margin:0;text-align:right;font-weight:700;overflow-wrap:anywhere}
+.note-local{font-size:12px;color:var(--muted);margin-top:14px}
+.acct{display:inline-flex;align-items:center;gap:8px}
+.acct .ini{width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font:700 11px var(--display)}
+@media (max-width:600px){.modal{padding:22px}.two{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <nav aria-label="Main">
+      <a class="logo" href="#top" aria-label="Meridian home">
+        <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="11.5" fill="none" stroke="var(--accent)" stroke-width="2"/><path d="M13 1.5v23M4 8.5c5 2.5 13 2.5 18 0M4 17.5c5-2.5 13-2.5 18 0" fill="none" stroke="var(--accent)" stroke-width="1.6"/></svg>
+        Meridian
+      </a>
+      <div class="links">
+        <a href="#top" aria-current="page">Home</a>
+        <a href="#notes">Field Notes</a>
+        <a href="#how">How it works</a>
+        <a href="#about">About us</a>
+      </div>
+      <button class="btn" type="button" id="signin">Sign in</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap" id="top">
+  <div class="hero">
+    <div>
+      <span class="eyebrow mono"><span class="pulse"></span>214 countries monitored · updated hourly</span>
+      <h1>Travel advice that <em>knows your route</em>, not just the headlines.</h1>
+      <p class="lede">Meridian turns embassy advisories, local news and on-the-ground reports into one calm briefing for your exact itinerary. Know what changed, why it matters, and what to do next.</p>
+
+      <div class="join-wrap">
+        <button class="btn primary join-btn" type="button" id="join-btn" aria-controls="join" aria-expanded="false">Join the waitlist <span aria-hidden="true">→</span></button>
+        <form class="join" id="join" novalidate hidden>
+          <label for="email" class="mono" style="position:absolute;left:-9999px">Email address</label>
+          <input id="email" type="email" placeholder="you@example.com" autocomplete="email" required>
+          <button class="btn primary" type="submit">Continue</button>
+          <button class="join-x" type="button" id="join-x" aria-label="Cancel">×</button>
+        </form>
+        <div class="join-err" id="join-err" role="alert"></div>
+      </div>
+      <div class="invite">Have an invite code? <button type="button" id="invite-toggle" aria-expanded="false">Enter it here</button></div>
+      <form class="invite-row" id="invite-form" hidden>
+        <label for="code" style="position:absolute;left:-9999px">Invite code</label>
+        <input id="code" placeholder="MRD-0000" maxlength="8">
+        <button class="btn" type="submit">Redeem</button>
+      </form>
+      <div class="msg" id="msg" role="status"></div>
+
+      <div class="proof">
+        <div class="avatars" aria-hidden="true">
+          <span style="background:#2C5B4D">AK</span><span style="background:#C27A3A">LM</span><span style="background:#4A5F8C">RS</span><span style="background:#8C4A6B">JT</span>
+        </div>
+        <p><span class="stars" aria-label="4.9 out of 5">★★★★★</span> <b>4.9</b> on the App Store &amp; Google Play<br>Trusted by 38,000 frequent travellers</p>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="phone" aria-label="App preview: trip briefing">
+        <div class="top">
+          <div><span class="mono" style="color:var(--muted)">TRIP · 12–26 NOV</span><h3>Andes &amp; Coast</h3></div>
+          <span class="chip">3 legs</span>
+        </div>
+        <div class="trip">
+          <div class="leg">
+            <div class="row"><strong>Lima, Peru</strong><span class="chip lvl l2">LEVEL 2</span></div>
+            <p>Increased caution. Petty theft near Miraflores bus stops is up this month.</p>
+            <div class="meter"><i style="width:45%;background:var(--l2)"></i></div>
+          </div>
+          <div class="leg">
+            <div class="row"><strong>Cusco, Peru</strong><span class="chip lvl l1">LEVEL 1</span></div>
+            <p>Normal precautions. Altitude 3,399 m. Plan a rest day on arrival.</p>
+            <div class="meter"><i style="width:20%;background:var(--l1)"></i></div>
+          </div>
+          <div class="leg">
+            <div class="row"><strong>Puno road route</strong><span class="chip lvl l3">LEVEL 3</span></div>
+            <p>Reconsider. Road blockades reported on Route 3S since Monday.</p>
+            <div class="meter"><i style="width:72%;background:var(--l3)"></i></div>
+          </div>
+        </div>
+      </div>
+      <div class="float" aria-hidden="true"><b>Suggested change</b>Take the PeruRail Titicaca train on 19 Nov and skip Route 3S.</div>
+    </div>
+  </div>
+
+  <div class="levels" aria-label="Advisory levels">
+    <div><span class="bar" style="background:var(--l1)"></span><strong>Level 1</strong><p>Exercise normal precautions.</p></div>
+    <div><span class="bar" style="background:var(--l2)"></span><strong>Level 2</strong><p>Exercise increased caution.</p></div>
+    <div><span class="bar" style="background:var(--l3)"></span><strong>Level 3</strong><p>Reconsider travel.</p></div>
+    <div><span class="bar" style="background:var(--l4)"></span><strong>Level 4</strong><p>Do not travel.</p></div>
+  </div>
+
+  <section id="how">
+    <div class="sec-head">
+      <h2>One briefing for the whole trip, from booking to the flight home.</h2>
+      <p>We read 1,400 official and local sources every hour so you can stop refreshing six government websites.</p>
+    </div>
+
+    <div class="feature">
+      <div class="copy">
+        <span class="mono" style="color:var(--accent)">YOUR FEED</span>
+        <h3>Alerts that only fire when your plans are affected.</h3>
+        <p>Add your flights, hotels and day trips. Meridian matches every update against your dates and places, so a strike in Lyon doesn't reach you unless you're passing through Lyon.</p>
+        <ul class="ticks">
+          <li>Route-aware: cities, airports, border crossings</li>
+          <li>Plain-language summaries with the source linked</li>
+          <li>Share a trip with family so they get the same alerts</li>
+        </ul>
+      </div>
+      <div class="screen" aria-label="App preview: alert feed">
+        <div class="feed-item"><span class="dot" style="background:var(--l3)">FR</span><div><b>Rail strike, 14 Nov</b><p>SNCF services from Paris Gare de Lyon cut by half. Your 09:12 TGV to Lyon is likely cancelled.</p><span class="when mono">2 MIN AGO · AFFECTS 1 BOOKING</span></div></div>
+        <div class="feed-item"><span class="dot" style="background:var(--l2)">JP</span><div><b>Typhoon watch, Okinawa</b><p>JMA expects heavy rain on 21–22 Nov. Ferry to Zamami may not run.</p><span class="when mono">1 HR AGO · WATCHING</span></div></div>
+        <div class="feed-item"><span class="dot" style="background:var(--l1)">PT</span><div><b>Lisbon advisory lowered</b><p>Level 2 back to Level 1 after protests ended peacefully.</p><span class="when mono">YESTERDAY · GOOD NEWS</span></div></div>
+      </div>
+    </div>
+
+    <div class="feature flip">
+      <div class="copy">
+        <span class="mono" style="color:var(--accent)">DESTINATION BRIEFS</span>
+        <h3>Read the country before you land in it.</h3>
+        <p>Each brief covers safety, health, entry rules, customs and local etiquette in a ten-minute read, written by regional analysts and checked weekly.</p>
+        <ul class="ticks">
+          <li>Visa and entry requirements for your passport</li>
+          <li>Vaccines, water safety and nearest hospitals</li>
+          <li>Neighbourhood-level notes from local contributors</li>
+        </ul>
+      </div>
+      <div class="screen" aria-label="App preview: destination brief">
+        <div class="brief">
+          <span class="chip lvl l2">LEVEL 2 · MOROCCO</span>
+          <h4>Marrakech, a first-timer's brief</h4>
+          <p>The medina is safe by day, but <mark>unofficial guides near Jemaa el-Fnaa</mark> often steer visitors to commission shops. Agree taxi fares before you get in; petit taxis should use the meter.</p>
+        </div>
+        <div class="insight">
+          <div><div class="v">90</div><div class="k">days visa-free</div></div>
+          <div><div class="v">19</div><div class="k">police (dial)</div></div>
+          <div><div class="v">8 min</div><div class="k">read time</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="notes">
+    <div class="sec-head">
+      <h2>Field Notes</h2>
+      <p>Longer reads from our analysts on how risk actually looks on the ground.</p>
+    </div>
+    <div class="notes">
+      <a class="note" href="#notes">
+        <div class="thumb" style="background:linear-gradient(135deg,#2C5B4D,#7FB39C)"><span class="mono">35.68°N 139.69°E</span></div>
+        <div class="body"><div class="meta"><span class="chip">Health</span><span class="mono">6 MIN</span></div><h3>Heat season in Tokyo is now four months long</h3><p>What changed since 2023 and how to plan midday sightseeing.</p><span class="date mono">2 OCT 2026</span></div>
+      </a>
+      <a class="note" href="#notes">
+        <div class="thumb" style="background:linear-gradient(135deg,#C27A3A,#E9C48A)"><span class="mono">31.63°N 8.01°W</span></div>
+        <div class="body"><div class="meta"><span class="chip">Scams</span><span class="mono">5 MIN</span></div><h3>The five tourist scams our readers report most</h3><p>From fake closures to card skimmers, with what to say in each case.</p><span class="date mono">28 SEP 2026</span></div>
+      </a>
+      <a class="note" href="#notes">
+        <div class="thumb" style="background:linear-gradient(135deg,#4A5F8C,#9DB0D6)"><span class="mono">64.15°N 21.94°W</span></div>
+        <div class="body"><div class="meta"><span class="chip">Nature</span><span class="mono">9 MIN</span></div><h3>Reading Iceland's volcano alerts like a local</h3><p>The colour codes, the road closures and when to change plans.</p><span class="date mono">21 SEP 2026</span></div>
+      </a>
+      <a class="note" href="#notes">
+        <div class="thumb" style="background:linear-gradient(135deg,#8C4A6B,#D69DB8)"><span class="mono">41.01°N 28.98°E</span></div>
+        <div class="body"><div class="meta"><span class="chip">Entry rules</span><span class="mono">7 MIN</span></div><h3>Europe's ETIAS: what to file before you fly</h3><p>Who needs it, the €20 fee, and how long approval really takes.</p><span class="date mono">15 SEP 2026</span></div>
+      </a>
+      <a class="note" href="#notes">
+        <div class="thumb" style="background:linear-gradient(135deg,#3B6E7A,#93C3C9)"><span class="mono">13.75°N 100.50°E</span></div>
+        <div class="body"><div class="meta"><span class="chip">Transport</span><span class="mono">5 MIN</span></div><h3>Night buses vs. sleeper trains in Southeast Asia</h3><p>Comparing incident data across six popular routes.</p><span class="date mono">9 SEP 2026</span></div>
+      </a>
+      <a class="note" href="#notes">
+        <div class="thumb" style="background:linear-gradient(135deg,#6B5A3A,#C9B58A)"><span class="mono">19.43°N 99.13°W</span></div>
+        <div class="body"><div class="meta"><span class="chip">Solo travel</span><span class="mono">8 MIN</span></div><h3>Mexico City by neighbourhood, for solo travellers</h3><p>Where to stay, where to walk after dark, and where to take a ride.</p><span class="date mono">1 SEP 2026</span></div>
+      </a>
+    </div>
+  </section>
+
+  <div class="cta" id="about">
+    <h2>Travel with the calm of someone who checked everything.</h2>
+    <button class="btn" type="button" data-open-signup>Create your account</button>
+  </div>
+</main>
+
+<footer class="wrap">
+  <div>
+    <a class="logo" href="#top">Meridian</a>
+    <p style="max-width:28em">Independent travel advisory for people who go further. We are not a government agency; always check your embassy's official guidance.</p>
+    <p class="mono">hello@meridian.travel</p>
+  </div>
+  <div><h4>Product</h4><ul><li><a href="#how">Trip feed</a></li><li><a href="#how">Destination briefs</a></li><li><a href="#notes">Field Notes</a></li></ul></div>
+  <div><h4>Company</h4><ul><li><a href="#about">About us</a></li><li><a href="#about">Analysts</a></li><li><a href="#about">Careers</a></li></ul></div>
+  <div><h4>Follow</h4><ul><li><a href="#top">Instagram</a></li><li><a href="#top">LinkedIn</a></li><li><a href="#top">X</a></li></ul></div>
+</footer>
+<div class="wrap copy-row"><span>© 2026 Meridian Advisory Ltd.</span><span>Privacy · Terms</span></div>
+
+
+<div class="overlay" id="overlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="m-title">
+    <div class="m-top">
+      <div class="steps" id="steps" aria-hidden="true"><i></i><i></i><i></i></div>
+      <button class="x" type="button" id="m-close" aria-label="Close">×</button>
+    </div>
+
+    <form id="step1" class="step" novalidate>
+      <h2 id="m-title">Create your Meridian account</h2>
+      <p class="sub" id="s1-sub">Join the waitlist. We'll send a sign-in link when your spot opens. No password needed.</p>
+      <div class="fields">
+        <div class="f"><label for="a-name">Full name</label><input id="a-name" autocomplete="name" placeholder="Priya Raman"><span class="err" hidden></span></div>
+        <div class="f"><label for="a-email">Email</label><input id="a-email" type="email" autocomplete="email" placeholder="you@example.com"><span class="err" hidden></span></div>
+        <div class="two">
+          <div class="f"><label for="a-home">Home country</label><select id="a-home"></select><span class="err" hidden></span></div>
+          <div class="f"><label for="a-passport">Passport</label><select id="a-passport"></select><span class="hint">Used for visa and entry rules</span></div>
+        </div>
+        <div class="f"><label for="a-code">Invite code <span style="font-weight:400;color:var(--muted)">(optional)</span></label><input id="a-code" placeholder="MRD-2041" maxlength="8" style="font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em"><span class="err" hidden></span></div>
+      </div>
+      <div class="m-actions"><button class="btn primary" type="submit">Continue</button></div>
+    </form>
+
+    <form id="step2" class="step" novalidate hidden>
+      <h2>How do you travel?</h2>
+      <p class="sub">We use this to decide which alerts reach you and how loud they are.</p>
+      <div class="fields">
+        <div class="f"><span class="lab" id="style-lab">Travel style (pick any)</span>
+          <div class="chips" id="styles" role="group" aria-labelledby="style-lab"></div></div>
+        <div class="two">
+          <div class="f"><label for="a-dest">Next destination</label><input id="a-dest" placeholder="Lisbon, Portugal"></div>
+          <div class="f"><label for="a-month">Departure month</label><input id="a-month" type="month"></div>
+        </div>
+        <label class="toggle" for="a-push">Push alerts for Level 3 and 4 changes<input id="a-push" type="checkbox" checked></label>
+        <label class="toggle" for="a-digest">Weekly Field Notes digest by email<input id="a-digest" type="checkbox" checked></label>
+      </div>
+      <div class="m-actions"><button class="btn" type="button" id="back">Back</button><button class="btn primary" type="submit" id="create">Create account</button></div>
+      <div class="msg" id="m-msg" role="status"></div>
+    </form>
+
+    <div id="step3" class="step" hidden>
+      <span class="badge" id="status-badge"></span>
+      <h2 style="margin-top:14px" id="done-title"></h2>
+      <p class="sub" id="done-sub"></p>
+      <dl class="summary" id="summary"></dl>
+      <p class="note-local" id="local-note" hidden>Saved in this browser only. Open the page signed in to claude.ai to keep your account across devices.</p>
+      <div class="m-actions"><button class="btn" type="button" id="edit">Edit details</button><button class="btn primary" type="button" id="done">Done</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const COUNTRIES=["India","United States","United Kingdom","Canada","Australia","Germany","France","Singapore","United Arab Emirates","Japan","Brazil","South Africa","Other"];
+const STYLES=["Solo","Family","Business","Backpacking","Luxury","Adventure","Digital nomad"];
+const CODE_RE=/^MRD-?\d{4}$/i;
+let db=null, uid=null, account=null, picked=new Set();
+
+for(const sel of [$('a-home'),$('a-passport')]){
+  sel.innerHTML='<option value="">Select…</option>'+COUNTRIES.map(c=>`<option>${c}</option>`).join('');
+}
+$('styles').innerHTML=STYLES.map(s=>`<button type="button" aria-pressed="false">${s}</button>`).join('');
+$('styles').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  const on=b.getAttribute('aria-pressed')!=='true';
+  b.setAttribute('aria-pressed',String(on)); on?picked.add(b.textContent):picked.delete(b.textContent);
+});
+
+function show(n){
+  for(const k of [1,2,3]) $('step'+k).hidden=k!==n;
+  [...$('steps').children].forEach((el,i)=>el.classList.toggle('on',i<n));
+}
+let lastFocus=null;
+function open(step=1){
+  lastFocus=document.activeElement;
+  $('overlay').hidden=false; document.body.style.overflow='hidden';
+  show(step);
+  const first=$('step'+step).querySelector('input,button.primary'); first&&first.focus();
+}
+function close(){ $('overlay').hidden=true; document.body.style.overflow=''; lastFocus&&lastFocus.focus(); }
+$('m-close').onclick=close; $('done').onclick=close;
+$('overlay').addEventListener('click',e=>{ if(e.target===$('overlay')) close(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('overlay').hidden) close(); });
+
+function setErr(input,text){
+  const f=input.closest('.f'), err=f.querySelector('.err');
+  f.classList.toggle('bad',!!text); if(err){err.hidden=!text; err.textContent=text||'';}
+  return !text;
+}
+function fill(a){
+  $('a-name').value=a.name||''; $('a-email').value=a.email||''; $('a-home').value=a.home||'';
+  $('a-passport').value=a.passport||''; $('a-code').value=a.code||''; $('a-dest').value=a.destination||'';
+  $('a-month').value=a.month||''; $('a-push').checked=a.pushAlerts!==false; $('a-digest').checked=a.digest!==false;
+  picked=new Set(a.styles||[]);
+  [...$('styles').children].forEach(b=>b.setAttribute('aria-pressed',String(picked.has(b.textContent))));
+}
+
+/* entry points */
+function expandJoin(){
+  $('join-btn').hidden=true; $('join').hidden=false;
+  $('join-btn').setAttribute('aria-expanded','true'); $('email').focus();
+}
+function collapseJoin(){
+  $('join').hidden=true; $('join').classList.remove('bad'); $('join-err').textContent='';
+  $('join-btn').hidden=false; $('join-btn').setAttribute('aria-expanded','false');
+}
+$('join-btn').addEventListener('click',()=>{
+  if(account){ renderDone(); open(3); return; }
+  expandJoin();
+});
+$('join-x').addEventListener('click',()=>{ collapseJoin(); $('join-btn').focus(); });
+$('email').addEventListener('keydown',e=>{ if(e.key==='Escape'){ collapseJoin(); $('join-btn').focus(); } });
+$('email').addEventListener('input',()=>{ $('join').classList.remove('bad'); $('join-err').textContent=''; });
+$('join').addEventListener('submit',e=>{
+  e.preventDefault();
+  const v=$('email').value.trim();
+  if(!/^\S+@\S+\.\S+$/.test(v)){
+    $('join').classList.add('bad'); $('join-err').textContent='Enter an email like name@example.com.'; $('email').focus(); return;
+  }
+  collapseJoin();
+  $('a-email').value=v; open(1); $('a-name').focus();
+});
+const t=$('invite-toggle'), f=$('invite-form');
+t.addEventListener('click',()=>{f.hidden=!f.hidden;t.setAttribute('aria-expanded',String(!f.hidden));if(!f.hidden)$('code').focus()});
+f.addEventListener('submit',e=>{
+  e.preventDefault();
+  const c=$('code').value.trim().toUpperCase();
+  if(!CODE_RE.test(c)){ $('msg').style.color='var(--l4)'; $('msg').textContent='Invite codes look like MRD-2041.'; return; }
+  $('msg').textContent=''; $('a-code').value=c; open(1);
+});
+document.querySelectorAll('[data-open-signup]').forEach(b=>b.addEventListener('click',()=>account?(renderDone(),open(3)):open(1)));
+$('signin').addEventListener('click',()=>account?(renderDone(),open(3)):open(1));
+
+/* step 1 */
+$('step1').addEventListener('submit',e=>{
+  e.preventDefault();
+  const ok=[
+    setErr($('a-name'),$('a-name').value.trim().length<2?'Enter your full name.':''),
+    setErr($('a-email'),/^\S+@\S+\.\S+$/.test($('a-email').value.trim())?'':'Enter an email like name@example.com.'),
+    setErr($('a-home'),$('a-home').value?'':'Choose your home country.'),
+    setErr($('a-code'),!$('a-code').value.trim()||CODE_RE.test($('a-code').value.trim())?'':'Invite codes look like MRD-2041. Leave it blank to join the waitlist.')
+  ].every(Boolean);
+  if(!ok){ $('step1').querySelector('.bad input,.bad select').focus(); return; }
+  show(2); $('styles').querySelector('button').focus();
+});
+$('back').onclick=()=>show(1);
+
+/* step 2: create */
+$('step2').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const code=$('a-code').value.trim().toUpperCase();
+  const a={
+    name:$('a-name').value.trim(), email:$('a-email').value.trim().toLowerCase(),
+    home:$('a-home').value, passport:$('a-passport').value||$('a-home').value,
+    code, status:code?'active':'waitlisted',
+    styles:[...picked], destination:$('a-dest').value.trim(), month:$('a-month').value,
+    pushAlerts:$('a-push').checked, digest:$('a-digest').checked,
+    createdAt:account?.createdAt||new Date().toISOString(), updatedAt:new Date().toISOString()
+  };
+  const btn=$('create'); btn.disabled=true; btn.textContent='Creating…'; $('m-msg').textContent='';
+  try{
+    await save(a); account=a; renderDone(); renderHeader(); show(3); $('done').focus();
+  }catch(err){
+    $('m-msg').style.color='var(--l4)';
+    $('m-msg').textContent=err&&err.code==='quota_exceeded'?'The waitlist is full right now. Try again later.':'We couldn’t save your account. Check your connection and try again.';
+  }finally{ btn.disabled=false; btn.textContent=account?'Save changes':'Create account'; }
+});
+$('edit').onclick=()=>{ fill(account); show(1); };
+
+async function save(a){
+  if(db&&uid){
+    try{ await db.doc('waitlist/'+uid).set(a); $('local-note').hidden=true; return; }
+    catch(err){ if(err&&err.code==='quota_exceeded') throw err; /* fall through to local */ }
+  }
+  localStorage.setItem('meridian-account',JSON.stringify(a)); $('local-note').hidden=false;
+}
+
+function renderDone(){
+  const a=account, live=a.status==='active';
+  $('status-badge').className='badge '+(live?'live':'wait');
+  $('status-badge').textContent=live?'● ACCOUNT ACTIVE':'● ON THE WAITLIST';
+  $('done-title').textContent=live?`Welcome aboard, ${a.name.split(' ')[0]}.`:`You're on the list, ${a.name.split(' ')[0]}.`;
+  $('done-sub').textContent=live
+    ?`Invite ${a.code} accepted. We've sent a sign-in link to ${a.email}.`
+    :`We'll email ${a.email} with a sign-in link as soon as your spot opens.`;
+  const rows=[["Email",a.email],["Home country",a.home],["Passport",a.passport],["Travel style",a.styles.join(', ')||'Not set'],
+    ["Next trip",[a.destination,a.month&&new Date(a.month+'-01').toLocaleDateString('en-GB',{month:'short',year:'numeric'})].filter(Boolean).join(' · ')||'Not set'],
+    ["Alerts",[a.pushAlerts&&'Level 3–4 push',a.digest&&'Weekly digest'].filter(Boolean).join(', ')||'Off']];
+  const dl=$('summary'); dl.replaceChildren();
+  for(const [k,v] of rows){ const d=document.createElement('div'),dt=document.createElement('dt'),dd=document.createElement('dd'); dt.textContent=k; dd.textContent=v; d.append(dt,dd); dl.append(d); }
+}
+function renderHeader(){
+  const b=$('signin');
+  if(!account){ b.textContent='Sign in'; return; }
+  const ini=account.name.split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+  b.replaceChildren(); const s=document.createElement('span'); s.className='acct';
+  const c=document.createElement('span'); c.className='ini'; c.textContent=ini;
+  const n=document.createElement('span'); n.textContent='My account';
+  s.append(c,n); b.append(s);
+  $('join-btn').innerHTML='View my account <span aria-hidden="true">→</span>';
+  $('email').value=account.email;
+}
+
+/* load an existing account */
+try{ const l=localStorage.getItem('meridian-account'); if(l){ account=JSON.parse(l); renderHeader(); $('local-note').hidden=false; } }catch{}
+(async()=>{
+  if(!window.claude?.use) return;
+  const [d,u]=await Promise.all([claude.use('db'),claude.use('user')]);
+  if(!d||!u) return;
+  uid=await u.id(); if(!uid) return; db=d;
+  try{
+    const snap=await db.doc('waitlist/'+uid).get();
+    if(snap.exists){ account=snap.data(); renderHeader(); }
+  }catch{}
+})();
+</script>
+
+</body>
+</html>
